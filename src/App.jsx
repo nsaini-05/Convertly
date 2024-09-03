@@ -23,7 +23,6 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const getConvertedAmount = async (signal) => {
-    console.log(!inputCurrencyAmount);
     if (!inputCurrencyAmount || !inputCurrencyFormat) {
       setInputCurrencyAmount("");
       setOutputCurrencyAmount("");

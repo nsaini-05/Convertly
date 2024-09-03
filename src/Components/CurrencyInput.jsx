@@ -1,4 +1,6 @@
+import { useEffect, useRef } from "react";
 import { currencyFormats } from "../CurrencyFormats";
+
 export const CurrencyInput = ({
   amount,
   changeAmount,
@@ -7,9 +9,26 @@ export const CurrencyInput = ({
   placeHolder,
   disabled = false,
 }) => {
+  const inputEl = useRef();
   const handleOptionChange = (selectedCurrecyLabel) => {
     changeCurrencyFormat(selectedCurrecyLabel);
   };
+  useEffect(() => {
+    if (disabled) return;
+    const callback = (e) => {
+      if (document.activeElement === inputEl.current) return;
+      if (e.code === "Enter") {
+        inputEl.current.focus();
+        console.log(disabled);
+        changeAmount("");
+      }
+    };
+    document.addEventListener("keydown", callback);
+    return () => {
+      document.removeEventListener(callback);
+    };
+  }, []);
+
   return (
     <div className="input-container">
       <input
@@ -19,6 +38,7 @@ export const CurrencyInput = ({
         value={amount}
         onChange={(e) => changeAmount(e.target.value)}
         disabled={disabled}
+        ref={inputEl}
       />
       <select
         id="options"
