@@ -6,88 +6,41 @@ import { currencyFormats } from "./CurrencyFormats";
 import { Header } from "./Components/Header";
 import { ConversionRateDescription } from "./Components/ConversionRateDescription";
 import { Loader } from "./Components/Loader";
+import { useConversionRate } from "./hooks/useConversionRate";
+import { useGetConvertedAmount } from "./hooks/useGetConvertedAmount";
+import { useLocalStorageState } from "./hooks/useLocalStorageState";
 function App() {
-  const [inputCurrencyAmount, setInputCurrencyAmount] = useState("");
-  const [outputCurrencyAmount, setOutputCurrencyAmount] = useState("");
+  const [lastConversion, setLastConversion] = useLocalStorageState(
+    {
+      inputCurrencyFormat: currencyFormats[0].label,
+      outputCurrencyFormat: currencyFormats[1].label,
+    },
+    "lastConversion"
+  );
+
   const [inputCurrencyFormat, setInputCurrencyFormat] = useState(
-    currencyFormats[1].label
+    lastConversion.inputCurrencyFormat
   );
   const [outputCurrencyFormat, setOutputCurrencyFormat] = useState(
-    currencyFormats[2].label
+    lastConversion.outputCurrencyFormat
   );
-  const [conversionRate, setConversionRate] = useState({
-    inputCurrency: "",
-    outputCurrency: "",
-    rate: "",
-  });
-  const [loading, setLoading] = useState(false);
 
-  const getConvertedAmount = async (signal) => {
-    if (!inputCurrencyAmount || !inputCurrencyFormat) {
-      setInputCurrencyAmount("");
-      setOutputCurrencyAmount("");
-      return;
-    }
-    if (inputCurrencyFormat === outputCurrencyFormat) {
-      setOutputCurrencyAmount(inputCurrencyAmount);
-      return;
-    }
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `https://api.frankfurter.app/latest?amount=${inputCurrencyAmount}&from=${inputCurrencyFormat}&to=${outputCurrencyFormat}`,
-        { signal: signal }
-      );
-      const data = await response.json();
-      setOutputCurrencyAmount(data.rates[outputCurrencyFormat]);
-    } catch (error) {
-      console.log(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { conversionRate } = useConversionRate(
+    inputCurrencyFormat,
+    outputCurrencyFormat
+  );
 
-  const getConversionRate = async (signal) => {
-    if (inputCurrencyFormat === outputCurrencyFormat) {
-      setConversionRate({
-        inputCurrency: inputCurrencyFormat,
-        outputCurrency: outputCurrencyFormat,
-        rate: 1,
-      });
-      return;
-    }
+  const {
+    inputCurrencyAmount,
+    setInputCurrencyAmount,
+    loading,
+    outputCurrencyAmount,
+    setOutputCurrencyAmount,
+  } = useGetConvertedAmount(inputCurrencyFormat, outputCurrencyFormat);
 
-    try {
-      const response = await fetch(
-        `https://api.frankfurter.app/latest?amount=${1}&from=${inputCurrencyFormat}&to=${outputCurrencyFormat}`,
-        { signal: signal }
-      );
-      const data = await response.json();
-
-      setConversionRate({
-        inputCurrency: inputCurrencyFormat,
-        outputCurrency: outputCurrencyFormat,
-        rate: data.rates[outputCurrencyFormat],
-      });
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
   useEffect(() => {
-    const controller = new AbortController();
-    getConversionRate();
-    return function () {
-      controller.abort();
-    };
+    setLastConversion({ inputCurrencyFormat, outputCurrencyFormat });
   }, [inputCurrencyFormat, outputCurrencyFormat]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    getConvertedAmount(controller.signal);
-    return function () {
-      controller.abort();
-    };
-  }, [inputCurrencyAmount, inputCurrencyFormat, outputCurrencyFormat]);
 
   return (
     <div className="hero-container">

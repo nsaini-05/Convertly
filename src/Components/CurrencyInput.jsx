@@ -19,7 +19,6 @@ export const CurrencyInput = ({
       if (document.activeElement === inputEl.current) return;
       if (e.code === "Enter") {
         inputEl.current.focus();
-        console.log(disabled);
         changeAmount("");
       }
     };
