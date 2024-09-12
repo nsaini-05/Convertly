@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { currencyFormats } from "../CurrencyFormats";
+import { useKey } from "../hooks/useKey";
 
 export const CurrencyInput = ({
   amount,
@@ -13,20 +14,8 @@ export const CurrencyInput = ({
   const handleOptionChange = (selectedCurrecyLabel) => {
     changeCurrencyFormat(selectedCurrecyLabel);
   };
-  useEffect(() => {
-    if (disabled) return;
-    const callback = (e) => {
-      if (document.activeElement === inputEl.current) return;
-      if (e.code === "Enter") {
-        inputEl.current.focus();
-        changeAmount("");
-      }
-    };
-    document.addEventListener("keydown", callback);
-    return () => {
-      document.removeEventListener(callback);
-    };
-  }, []);
+
+  useKey(disabled, "Enter", inputEl, changeAmount);
 
   return (
     <div className="input-container">
